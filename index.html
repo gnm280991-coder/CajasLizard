@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Control de Cajas & Ventas</title>
+    <title>Control de Cajas & Reinversión</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Lucide Icons -->
@@ -28,7 +28,7 @@
     <header class="border-b border-slate-800 bg-slate-900/80 sticky top-0 z-50 backdrop-blur-md">
         <div class="max-w-6xl mx-auto px-4 py-4 flex flex-wrap justify-between items-center gap-4">
             <h1 class="font-bold text-xl text-white flex items-center gap-2">
-                <i data-lucide="box" class="w-6 h-6 text-pink-500"></i> Control Cajas & Ganancias
+                <i data-lucide="box" class="w-6 h-6 text-pink-500"></i> Control Cajas & Reinversión
             </h1>
             <div class="flex items-center gap-2">
                 <button onclick="downloadReportImage()" class="text-xs bg-pink-600 hover:bg-pink-500 text-white font-semibold px-3 py-2 rounded-lg border border-pink-500/30 flex items-center gap-1.5 transition-all shadow-lg shadow-pink-950/50">
@@ -78,8 +78,8 @@
             </div>
 
             <div class="glass-card rounded-2xl p-5">
-                <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-1">Costo Producción Total</span>
-                <div class="text-2xl font-bold text-slate-300" id="metric-total-costs">Bs. 0.00</div>
+                <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-1">Capital Total Aportado</span>
+                <div class="text-2xl font-bold text-slate-300" id="metric-total-capital">Bs. 0.00</div>
             </div>
 
             <div class="glass-card rounded-2xl p-5 border-pink-500/30">
@@ -91,30 +91,29 @@
         <!-- FORMULARIOS -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-            <!-- Formulario 1: Registro de Participantes por Cajas -->
+            <!-- Formulario 1: Registro / Edición de Participantes -->
             <div class="glass-card rounded-2xl p-6">
-                <h3 class="text-md font-bold text-white flex items-center gap-2 mb-4">
-                    <i data-lucide="user-plus" class="w-5 h-5 text-pink-400"></i> Registrar Participante (Cajas)
-                </h3>
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-md font-bold text-white flex items-center gap-2" id="partner-form-title">
+                        <i data-lucide="user-plus" class="w-5 h-5 text-pink-400"></i> Registrar Participante
+                    </h3>
+                    <button type="button" id="cancel-edit-partner" class="hidden text-xs text-slate-400 hover:text-white bg-slate-800 px-2 py-1 rounded">
+                        Cancelar
+                    </button>
+                </div>
                 <form id="partner-form" class="space-y-4">
+                    <input type="hidden" id="partner-id-edit">
                     <div>
                         <label class="block text-xs text-slate-400 mb-1">Nombre del Participante</label>
-                        <input type="text" id="partner-name" required placeholder="Ej. Juan" 
+                        <input type="text" id="partner-name" required placeholder="Ej. Grover" 
                             class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-pink-500">
                     </div>
-                    <div class="grid grid-cols-2 gap-3">
-                        <div>
-                            <label class="block text-xs text-slate-400 mb-1">Cajas Aportadas</label>
-                            <input type="number" id="partner-boxes" step="1" min="0" required placeholder="0" 
-                                class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-pink-500">
-                        </div>
-                        <div>
-                            <label class="block text-xs text-slate-400 mb-1">Cajas Retiradas</label>
-                            <input type="number" id="partner-withdrawals" step="1" min="0" placeholder="0" 
-                                class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-pink-500">
-                        </div>
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">Cajas Aportadas Inicialmente</label>
+                        <input type="number" id="partner-boxes" step="1" min="0" required placeholder="0" 
+                            class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-pink-500">
                     </div>
-                    <button type="submit" class="w-full bg-pink-600 hover:bg-pink-500 text-white font-semibold text-sm py-2.5 rounded-xl transition-all">
+                    <button type="submit" id="partner-submit-btn" class="w-full bg-pink-600 hover:bg-pink-500 text-white font-semibold text-sm py-2.5 rounded-xl transition-all">
                         Guardar Participante
                     </button>
                 </form>
@@ -132,7 +131,6 @@
                             class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-cyan-500">
                     </div>
 
-                    <!-- Calculados automáticamente -->
                     <div class="grid grid-cols-2 gap-3 p-3 rounded-xl bg-slate-900/50 border border-slate-800/80">
                         <div>
                             <span class="block text-[10px] text-slate-400 uppercase">Costo Total</span>
@@ -187,10 +185,9 @@
                             <th class="pb-3 font-semibold">Cajas Aportadas</th>
                             <th class="pb-3 font-semibold">Capital Equiv. (Bs.)</th>
                             <th class="pb-3 font-semibold">% Aporte</th>
-                            <th class="pb-3 font-semibold">Ganancia (Bs.)</th>
-                            <th class="pb-3 font-semibold text-amber-400">Cajas Retiradas</th>
-                            <th class="pb-3 font-semibold text-right">Neto a Cobrar (Bs.)</th>
-                            <th class="pb-3 font-semibold text-right">Borrar</th>
+                            <th class="pb-3 font-semibold">Ganancia Corresponde (Bs.)</th>
+                            <th class="pb-3 font-semibold text-emerald-400 text-right">Neto a Cobrar (Bs.)</th>
+                            <th class="pb-3 font-semibold text-right">Acciones</th>
                         </tr>
                     </thead>
                     <tbody id="partners-table-body" class="divide-y divide-slate-800/50"></tbody>
@@ -198,22 +195,18 @@
             </div>
 
             <!-- Resumen al pie del informe -->
-            <div class="mt-6 pt-4 border-t border-slate-800 grid grid-cols-2 sm:grid-cols-4 gap-3 text-center text-xs">
+            <div class="mt-6 pt-4 border-t border-slate-800 grid grid-cols-2 sm:grid-cols-3 gap-3 text-center text-xs">
                 <div class="bg-slate-900/60 p-2.5 rounded-xl border border-slate-800">
                     <span class="text-slate-400 block text-[10px] uppercase">Cajas Aportadas</span>
-                    <span class="font-bold text-white text-sm" id="report-total-boxes">0</span>
-                </div>
-                <div class="bg-slate-900/60 p-2.5 rounded-xl border border-slate-800">
-                    <span class="text-slate-400 block text-[10px] uppercase">Cajas Retiradas</span>
-                    <span class="font-bold text-amber-400 text-sm" id="report-total-withdrawals">0</span>
+                    <span class="font-bold text-white text-sm" id="report-total-boxes">0 cajas</span>
                 </div>
                 <div class="bg-slate-900/60 p-2.5 rounded-xl border border-slate-800">
                     <span class="text-slate-400 block text-[10px] uppercase">Ganancia Neta Total</span>
-                    <span class="font-bold text-emerald-400 text-sm" id="report-total-profit">Bs. 0.00</span>
+                    <span class="font-bold text-pink-400 text-sm" id="report-total-profit">Bs. 0.00</span>
                 </div>
-                <div class="bg-slate-900/60 p-2.5 rounded-xl border border-slate-800">
+                <div class="bg-slate-900/60 p-2.5 rounded-xl border border-slate-800 col-span-2 sm:col-span-1">
                     <span class="text-slate-400 block text-[10px] uppercase">Total Neto Liquidado</span>
-                    <span class="font-bold text-cyan-400 text-sm" id="report-total-payout">Bs. 0.00</span>
+                    <span class="font-bold text-emerald-400 text-sm" id="report-total-reinvest">Bs. 0.00</span>
                 </div>
             </div>
         </div>
@@ -242,50 +235,56 @@
 
     </main>
 
-    <!-- CONTENEDOR OCULTO DEDICADO EXCLUSIVAMENTE PARA CAPTURA DE FOTO HD SIN RECORTES -->
+    <!-- CONTENEDOR OCULTO PARA CAPTURA DE FOTO HD -->
     <div style="position: absolute; left: -9999px; top: -9999px;">
         <div id="export-image-container" style="width: 780px; background-color: #020617; color: #f8fafc; padding: 28px; border-radius: 20px; font-family: 'Inter', sans-serif; border: 1px solid rgba(16, 185, 129, 0.3);">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #1e293b; padding-bottom: 14px;">
                 <div>
-                    <h2 style="font-size: 20px; font-weight: 700; color: #ffffff; margin: 0; display: flex; align-items: center; gap: 8px;">
+                    <h2 style="font-size: 20px; font-weight: 700; color: #ffffff; margin: 0;">
                         Informe de Liquidación por Participante
                     </h2>
                     <p style="font-size: 12px; color: #94a3b8; margin: 4px 0 0 0;" id="export-date-tag"></p>
                 </div>
-                <div style="text-align: right;">
-                    <span style="font-size: 11px; background: rgba(236, 72, 153, 0.15); color: #f472b6; border: 1px solid rgba(236, 72, 153, 0.3); padding: 4px 10px; border-radius: 8px; font-weight: 600;">
-                        Control de Cajas
+                <div>
+                    <span style="font-size: 11px; background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); padding: 5px 12px; border-radius: 8px; font-weight: 700;">
+                        Control de Cajas Live
                     </span>
                 </div>
             </div>
 
-            <!-- Tarjetas formateadas en columna limpia dentro de la imagen -->
-            <div id="export-partners-list" style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;"></div>
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; text-align: left; font-size: 12px;">
+                <thead>
+                    <tr style="border-bottom: 2px solid #334155; color: #94a3b8; font-size: 10px; text-transform: uppercase;">
+                        <th style="padding: 10px 6px; width: 25%;">Participante</th>
+                        <th style="padding: 10px 6px; width: 20%;">Cajas Aportadas</th>
+                        <th style="padding: 10px 6px; width: 20%;">Capital Equiv. (Bs.)</th>
+                        <th style="padding: 10px 6px; width: 15%;">% Aporte</th>
+                        <th style="padding: 10px 6px; width: 20%; color: #34d399;">Ganancia Corresponde (Bs.)</th>
+                        <th style="padding: 10px 6px; width: 20%; text-align: right; color: #34d399;">Neto a Cobrar (Bs.)</th>
+                    </tr>
+                </thead>
+                <tbody id="export-partners-table" style="color: #cbd5e1;"></tbody>
+            </table>
 
-            <!-- Resumen Total al Pie -->
-            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; border-top: 1px solid #1e293b; padding-top: 16px; text-align: center;">
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; border-top: 1px solid #1e293b; padding-top: 16px; text-align: center;">
                 <div style="background: rgba(15, 23, 42, 0.8); padding: 10px; border-radius: 12px; border: 1px solid #1e293b;">
                     <span style="font-size: 10px; color: #94a3b8; text-transform: uppercase; display: block; margin-bottom: 2px;">Cajas Aportadas</span>
-                    <span style="font-size: 15px; font-weight: 700; color: #ffffff;" id="export-total-boxes">0</span>
+                    <span style="font-size: 15px; font-weight: 700; color: #ffffff;" id="export-total-boxes">0 cajas</span>
                 </div>
                 <div style="background: rgba(15, 23, 42, 0.8); padding: 10px; border-radius: 12px; border: 1px solid #1e293b;">
-                    <span style="font-size: 10px; color: #94a3b8; text-transform: uppercase; display: block; margin-bottom: 2px;">Cajas Retiradas</span>
-                    <span style="font-size: 15px; font-weight: 700; color: #fbbf24;" id="export-total-withdrawals">0</span>
-                </div>
-                <div style="background: rgba(15, 23, 42, 0.8); padding: 10px; border-radius: 12px; border: 1px solid #1e293b;">
-                    <span style="font-size: 10px; color: #94a3b8; text-transform: uppercase; display: block; margin-bottom: 2px;">Ganancia Total</span>
+                    <span style="font-size: 10px; color: #94a3b8; text-transform: uppercase; display: block; margin-bottom: 2px;">Ganancia Neta Total</span>
                     <span style="font-size: 15px; font-weight: 700; color: #34d399;" id="export-total-profit">Bs. 0.00</span>
                 </div>
                 <div style="background: rgba(15, 23, 42, 0.8); padding: 10px; border-radius: 12px; border: 1px solid #1e293b;">
-                    <span style="font-size: 10px; color: #94a3b8; text-transform: uppercase; display: block; margin-bottom: 2px;">Neto Liquidado</span>
-                    <span style="font-size: 15px; font-weight: 700; color: #22d3ee;" id="export-total-payout">Bs. 0.00</span>
+                    <span style="font-size: 10px; color: #94a3b8; text-transform: uppercase; display: block; margin-bottom: 2px;">Total Neto Liquidado</span>
+                    <span style="font-size: 15px; font-weight: 700; color: #34d399;" id="export-total-reinvest">Bs. 0.00</span>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        let config = JSON.parse(localStorage.getItem('tiktok_config')) || { costPerBox: 10, salePerBox: 15 };
+        let config = JSON.parse(localStorage.getItem('tiktok_config')) || { costPerBox: 900, salePerBox: 980 };
         let partners = JSON.parse(localStorage.getItem('tiktok_partners_box')) || [];
         let sales = JSON.parse(localStorage.getItem('tiktok_sales_box')) || [];
 
@@ -330,23 +329,63 @@
             render();
         }
 
-        document.getElementById('partner-form').addEventListener('submit', (e) => {
-            e.preventDefault();
-            const name = document.getElementById('partner-name').value.trim();
-            const boxes = parseInt(document.getElementById('partner-boxes').value) || 0;
-            const withdrawals = parseInt(document.getElementById('partner-withdrawals').value) || 0;
+        // EDICION Y REGISTRO DE PARTICIPANTES
+        const partnerForm = document.getElementById('partner-form');
+        const partnerFormTitle = document.getElementById('partner-form-title');
+        const partnerSubmitBtn = document.getElementById('partner-submit-btn');
+        const cancelEditPartnerBtn = document.getElementById('cancel-edit-partner');
 
-            const existingIndex = partners.findIndex(p => p.name.toLowerCase() === name.toLowerCase());
-            if (existingIndex >= 0) {
-                partners[existingIndex].boxes = boxes;
-                partners[existingIndex].withdrawals = withdrawals;
-            } else {
-                partners.push({ id: Date.now(), name, boxes, withdrawals });
-            }
+        function editPartner(id) {
+            const partner = partners.find(p => p.id === id);
+            if (!partner) return;
 
+            document.getElementById('partner-id-edit').value = partner.id;
+            document.getElementById('partner-name').value = partner.name;
+            document.getElementById('partner-boxes').value = partner.boxes;
+
+            partnerFormTitle.innerHTML = `<i data-lucide="edit-3" class="w-5 h-5 text-amber-400"></i> Editar Participante`;
+            partnerSubmitBtn.textContent = 'Actualizar Participante';
+            partnerSubmitBtn.className = 'w-full bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold text-sm py-2.5 rounded-xl transition-all';
+            cancelEditPartnerBtn.classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        cancelEditPartnerBtn.addEventListener('click', resetPartnerForm);
+
+        function resetPartnerForm() {
+            document.getElementById('partner-id-edit').value = '';
             document.getElementById('partner-name').value = '';
             document.getElementById('partner-boxes').value = '';
-            document.getElementById('partner-withdrawals').value = '';
+
+            partnerFormTitle.innerHTML = `<i data-lucide="user-plus" class="w-5 h-5 text-pink-400"></i> Registrar Participante`;
+            partnerSubmitBtn.textContent = 'Guardar Participante';
+            partnerSubmitBtn.className = 'w-full bg-pink-600 hover:bg-pink-500 text-white font-semibold text-sm py-2.5 rounded-xl transition-all';
+            cancelEditPartnerBtn.classList.add('hidden');
+            lucide.createIcons();
+        }
+
+        partnerForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const editId = document.getElementById('partner-id-edit').value;
+            const name = document.getElementById('partner-name').value.trim();
+            const boxes = parseInt(document.getElementById('partner-boxes').value) || 0;
+
+            if (editId) {
+                const partner = partners.find(p => p.id === parseInt(editId));
+                if (partner) {
+                    partner.name = name;
+                    partner.boxes = boxes;
+                }
+            } else {
+                const existingIndex = partners.findIndex(p => p.name.toLowerCase() === name.toLowerCase());
+                if (existingIndex >= 0) {
+                    partners[existingIndex].boxes = boxes;
+                } else {
+                    partners.push({ id: Date.now(), name, boxes });
+                }
+            }
+
+            resetPartnerForm();
             saveData();
         });
 
@@ -374,8 +413,10 @@
         });
 
         function deletePartner(id) {
-            partners = partners.filter(p => p.id !== id);
-            saveData();
+            if (confirm('¿Deseas eliminar a este participante?')) {
+                partners = partners.filter(p => p.id !== id);
+                saveData();
+            }
         }
 
         function deleteSale(id) {
@@ -387,6 +428,7 @@
             if (confirm('¿Deseas reiniciar todo el registro?')) {
                 partners = [];
                 sales = [];
+                resetPartnerForm();
                 saveData();
             }
         }
@@ -400,18 +442,17 @@
             const cashSales = sales.filter(s => s.paymentMethod === 'Efectivo').reduce((acc, s) => acc + s.salePrice, 0);
             
             const totalPartnerBoxes = partners.reduce((acc, p) => acc + p.boxes, 0);
-            const totalWithdrawals = partners.reduce((acc, p) => acc + (p.withdrawals || 0), 0);
+            const totalCapitalBs = totalPartnerBoxes * config.costPerBox;
+            const totalReinvestmentBs = totalCapitalBs + totalProfit;
 
             document.getElementById('qr-total').textContent = formatBs(qrSales);
             document.getElementById('cash-total').textContent = formatBs(cashSales);
-            document.getElementById('metric-total-costs').textContent = formatBs(totalCosts);
+            document.getElementById('metric-total-capital').textContent = formatBs(totalCapitalBs);
             document.getElementById('metric-net-profit').textContent = formatBs(totalProfit);
 
             const dateString = `Actualizado: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
             document.getElementById('live-date-tag').textContent = dateString;
             document.getElementById('export-date-tag').textContent = dateString;
-
-            let grandTotalPayout = 0;
 
             // 1. RENDER TARJETAS MÓVILES
             const cardsContainer = document.getElementById('partners-cards-container');
@@ -421,22 +462,20 @@
             const partnersBody = document.getElementById('partners-table-body');
             partnersBody.innerHTML = '';
 
-            // 3. RENDER IMAGEN EXPORTACION
-            const exportList = document.getElementById('export-partners-list');
-            exportList.innerHTML = '';
+            // 3. RENDER TABLA IMAGEN EXPORTACION
+            const exportTableBody = document.getElementById('export-partners-table');
+            exportTableBody.innerHTML = '';
 
             if (partners.length === 0) {
                 cardsContainer.innerHTML = `<div class="p-4 text-center text-xs text-slate-500 bg-slate-900/50 rounded-xl">Sin participantes registrados</div>`;
-                partnersBody.innerHTML = `<tr><td colspan="8" class="py-4 text-center text-xs text-slate-500">Sin participantes registrados</td></tr>`;
-                exportList.innerHTML = `<div style="text-align: center; font-size: 12px; color: #64748b; padding: 20px;">Sin participantes registrados</div>`;
+                partnersBody.innerHTML = `<tr><td colspan="7" class="py-4 text-center text-xs text-slate-500">Sin participantes registrados</td></tr>`;
+                exportTableBody.innerHTML = `<tr><td colspan="6" style="padding: 16px; text-align: center; color: #64748b; font-size: 11px;">Sin participantes registrados</td></tr>`;
             } else {
                 partners.forEach(partner => {
                     const share = totalPartnerBoxes > 0 ? (partner.boxes / totalPartnerBoxes) : 0;
                     const partnerCapitalBs = partner.boxes * config.costPerBox;
                     const partnerProfit = totalProfit * share;
-                    const withdrawalBs = (partner.withdrawals || 0) * config.costPerBox;
-                    const netToCollect = (partnerCapitalBs + partnerProfit) - withdrawalBs;
-                    grandTotalPayout += netToCollect;
+                    const totalPartnerReinvestment = partnerCapitalBs + partnerProfit;
 
                     // Tarjeta Móvil Live
                     const card = document.createElement('div');
@@ -444,9 +483,14 @@
                     card.innerHTML = `
                         <div class="flex justify-between items-center border-b border-slate-800 pb-2">
                             <span class="font-bold text-white text-base">${partner.name}</span>
-                            <button onclick="deletePartner(${partner.id})" class="text-slate-500 hover:text-red-400 p-1">
-                                <i data-lucide="trash" class="w-4 h-4"></i>
-                            </button>
+                            <div class="flex gap-2">
+                                <button onclick="editPartner(${partner.id})" class="text-slate-400 hover:text-amber-400 p-1">
+                                    <i data-lucide="edit" class="w-4 h-4"></i>
+                                </button>
+                                <button onclick="deletePartner(${partner.id})" class="text-slate-500 hover:text-red-400 p-1">
+                                    <i data-lucide="trash" class="w-4 h-4"></i>
+                                </button>
+                            </div>
                         </div>
                         <div class="grid grid-cols-2 gap-2 text-xs">
                             <div>
@@ -458,18 +502,14 @@
                                 <span class="text-slate-400 block text-[10px] uppercase">% Aporte</span>
                                 <span class="text-slate-200 font-semibold">${(share * 100).toFixed(1)}%</span>
                             </div>
-                            <div>
+                            <div class="col-span-2">
                                 <span class="text-slate-400 block text-[10px] uppercase">Ganancia Corresponde</span>
                                 <span class="font-semibold ${partnerProfit >= 0 ? 'text-emerald-400' : 'text-red-400'}">${formatBs(partnerProfit)}</span>
                             </div>
-                            <div>
-                                <span class="text-amber-400/80 block text-[10px] uppercase">Cajas Retiradas</span>
-                                <span class="text-amber-400 font-medium">${partner.withdrawals || 0} cajas (${formatBs(withdrawalBs)})</span>
-                            </div>
                         </div>
                         <div class="pt-2 border-t border-slate-800/80 flex justify-between items-center">
-                            <span class="text-xs text-slate-400 uppercase font-semibold">Neto a Cobrar:</span>
-                            <span class="text-base font-bold text-emerald-400">${formatBs(netToCollect)}</span>
+                            <span class="text-xs text-slate-300 font-semibold uppercase">Neto a Cobrar:</span>
+                            <span class="text-base font-bold text-emerald-400">${formatBs(totalPartnerReinvestment)}</span>
                         </div>
                     `;
                     cardsContainer.appendChild(card);
@@ -482,9 +522,11 @@
                         <td class="py-3 text-slate-400">${formatBs(partnerCapitalBs)}</td>
                         <td class="py-3 text-slate-300">${(share * 100).toFixed(1)}%</td>
                         <td class="py-3 font-semibold ${partnerProfit >= 0 ? 'text-emerald-400' : 'text-red-400'}">${formatBs(partnerProfit)}</td>
-                        <td class="py-3 text-amber-400 font-medium">${partner.withdrawals || 0} cajas (${formatBs(withdrawalBs)})</td>
-                        <td class="py-3 font-bold text-white text-right">${formatBs(netToCollect)}</td>
+                        <td class="py-3 font-bold text-emerald-400 text-right">${formatBs(totalPartnerReinvestment)}</td>
                         <td class="py-3 text-right">
+                            <button onclick="editPartner(${partner.id})" class="text-slate-400 hover:text-amber-400 mr-2">
+                                <i data-lucide="edit" class="w-4 h-4"></i>
+                            </button>
                             <button onclick="deletePartner(${partner.id})" class="text-slate-500 hover:text-red-400">
                                 <i data-lucide="trash" class="w-4 h-4"></i>
                             </button>
@@ -492,51 +534,29 @@
                     `;
                     partnersBody.appendChild(row);
 
-                    // Elemento para Exportar Foto HD
-                    const exportItem = document.createElement('div');
-                    exportItem.style.cssText = "background: rgba(15, 23, 42, 0.9); border: 1px solid #1e293b; border-radius: 12px; padding: 14px;";
-                    exportItem.innerHTML = `
-                        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; padding-bottom: 8px; margin-bottom: 10px;">
-                            <span style="font-size: 16px; font-weight: 700; color: #ffffff;">${partner.name}</span>
-                            <span style="font-size: 14px; font-weight: 700; color: #10b981; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2); padding: 3px 10px; border-radius: 6px;">
-                                Neto: ${formatBs(netToCollect)}
-                            </span>
-                        </div>
-                        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; font-size: 11px;">
-                            <div>
-                                <span style="color: #94a3b8; display: block; font-size: 9px; text-transform: uppercase;">Aporte</span>
-                                <span style="color: #cbd5e1; font-weight: 600;">${partner.boxes} cajas</span>
-                                <span style="color: #64748b; display: block; font-size: 9px;">(${formatBs(partnerCapitalBs)})</span>
-                            </div>
-                            <div>
-                                <span style="color: #94a3b8; display: block; font-size: 9px; text-transform: uppercase;">% Part.</span>
-                                <span style="color: #cbd5e1; font-weight: 600;">${(share * 100).toFixed(1)}%</span>
-                            </div>
-                            <div>
-                                <span style="color: #94a3b8; display: block; font-size: 9px; text-transform: uppercase;">Ganancia</span>
-                                <span style="color: ${partnerProfit >= 0 ? '#34d399' : '#f87171'}; font-weight: 600;">${formatBs(partnerProfit)}</span>
-                            </div>
-                            <div>
-                                <span style="color: #fbbf24; display: block; font-size: 9px; text-transform: uppercase;">Retiros</span>
-                                <span style="color: #fbbf24; font-weight: 600;">${partner.withdrawals || 0} cajas</span>
-                                <span style="color: #92400e; display: block; font-size: 9px;">(${formatBs(withdrawalBs)})</span>
-                            </div>
-                        </div>
+                    // Fila para Tabla de Imagen HD
+                    const exportRow = document.createElement('tr');
+                    exportRow.style.cssText = "border-bottom: 1px solid #1e293b;";
+                    exportRow.innerHTML = `
+                        <td style="padding: 10px 6px; font-weight: 700; color: #ffffff;">${partner.name}</td>
+                        <td style="padding: 10px 6px; color: #cbd5e1;">${partner.boxes} cajas</td>
+                        <td style="padding: 10px 6px; color: #94a3b8;">${formatBs(partnerCapitalBs)}</td>
+                        <td style="padding: 10px 6px; color: #cbd5e1;">${(share * 100).toFixed(1)}%</td>
+                        <td style="padding: 10px 6px; color: ${partnerProfit >= 0 ? '#34d399' : '#f87171'}; font-weight: 600;">${formatBs(partnerProfit)}</td>
+                        <td style="padding: 10px 6px; text-align: right; font-weight: 700; color: #34d399; font-size: 13px;">${formatBs(totalPartnerReinvestment)}</td>
                     `;
-                    exportList.appendChild(exportItem);
+                    exportTableBody.appendChild(exportRow);
                 });
             }
 
             // Actualizar Totales en UI Live e Imagen
             document.getElementById('report-total-boxes').textContent = `${totalPartnerBoxes} cajas`;
-            document.getElementById('report-total-withdrawals').textContent = `${totalWithdrawals} cajas`;
             document.getElementById('report-total-profit').textContent = formatBs(totalProfit);
-            document.getElementById('report-total-payout').textContent = formatBs(grandTotalPayout);
+            document.getElementById('report-total-reinvest').textContent = formatBs(totalReinvestmentBs);
 
             document.getElementById('export-total-boxes').textContent = `${totalPartnerBoxes} cajas`;
-            document.getElementById('export-total-withdrawals').textContent = `${totalWithdrawals} cajas`;
             document.getElementById('export-total-profit').textContent = formatBs(totalProfit);
-            document.getElementById('export-total-payout').textContent = formatBs(grandTotalPayout);
+            document.getElementById('export-total-reinvest').textContent = formatBs(totalReinvestmentBs);
 
             // TABLA VENTAS
             const salesBody = document.getElementById('sales-table-body');
@@ -575,13 +595,13 @@
 
             html2canvas(exportElement, {
                 backgroundColor: '#020617',
-                scale: 2, // Calidad HD
-                windowWidth: 800, // Ancho de renderizado forzado para evitar recortes móviles
+                scale: 2,
+                windowWidth: 800,
                 logging: false,
                 useCORS: true
             }).then(canvas => {
                 const link = document.createElement('a');
-                link.download = `Informe_Socios_Cajas_${new Date().toISOString().slice(0,10)}.png`;
+                link.download = `Informe_Liquidacion_Cajas_${new Date().toISOString().slice(0,10)}.png`;
                 link.href = canvas.toDataURL('image/png');
                 link.click();
             }).catch(err => {
@@ -598,11 +618,11 @@
             const cashSales = sales.filter(s => s.paymentMethod === 'Efectivo').reduce((acc, s) => acc + s.salePrice, 0);
             const totalBoxesSold = sales.reduce((acc, s) => acc + s.boxQty, 0);
             const totalPartnerBoxes = partners.reduce((acc, p) => acc + p.boxes, 0);
-            const totalBoxesWithdrawn = partners.reduce((acc, p) => acc + (p.withdrawals || 0), 0);
+            const totalCapitalBs = totalPartnerBoxes * config.costPerBox;
 
             let sheetData = [];
 
-            sheetData.push(["REPORTE GENERAL DE CONTROL DE CAJAS & GANANCIAS"]);
+            sheetData.push(["REPORTE GENERAL DE CONTROL DE CAJAS & LIQUIDACIÓN"]);
             sheetData.push(["Fecha de reporte:", new Date().toLocaleString()]);
             sheetData.push([]);
             sheetData.push(["CONFIGURACIÓN DE PRECIOS BASE"]);
@@ -611,25 +631,23 @@
             sheetData.push([]);
 
             sheetData.push(["RESUMEN DE MÉTRICAS GENERALES"]);
-            sheetData.push(["Total Cajas Aportadas por Socios:", totalPartnerBoxes]);
+            sheetData.push(["Total Cajas Aportadas Inicialmente:", totalPartnerBoxes]);
+            sheetData.push(["Capital Total Aportado (Bs.):", totalCapitalBs]);
             sheetData.push(["Total Cajas Vendidas:", totalBoxesSold]);
-            sheetData.push(["Total Cajas Retiradas:", totalBoxesWithdrawn]);
             sheetData.push(["Cobrado por QR (Bs.):", qrSales]);
             sheetData.push(["Cobrado en Efectivo (Bs.):", cashSales]);
-            sheetData.push(["Costo Producción Total (Bs.):", totalCosts]);
             sheetData.push(["Ganancia Neta Total (Bs.):", totalProfit]);
+            sheetData.push(["Total Neto Liquidado (Bs.):", totalCapitalBs + totalProfit]);
             sheetData.push([]);
 
-            sheetData.push(["REPARTO DE GANANCIAS Y CAJAS POR PARTICIPANTE"]);
+            sheetData.push(["REPARTO Y LIQUIDACIÓN POR PARTICIPANTE"]);
             sheetData.push([
                 "Participante", 
                 "Cajas Aportadas", 
-                "Capital Equiv. (Bs.)", 
+                "Capital Aportado (Bs.)", 
                 "% Aporte", 
                 "Ganancia Corresponde (Bs.)", 
-                "Cajas Retiradas", 
-                "Costo Cajas Retiradas (Bs.)", 
-                "Neto Final a Cobrar (Bs.)"
+                "Neto a Cobrar (Bs.)"
             ]);
 
             if (partners.length === 0) {
@@ -639,8 +657,7 @@
                     const share = totalPartnerBoxes > 0 ? (partner.boxes / totalPartnerBoxes) : 0;
                     const partnerCapitalBs = partner.boxes * config.costPerBox;
                     const partnerProfit = totalProfit * share;
-                    const withdrawalBs = (partner.withdrawals || 0) * config.costPerBox;
-                    const netToCollect = (partnerCapitalBs + partnerProfit) - withdrawalBs;
+                    const totalReinvest = partnerCapitalBs + partnerProfit;
 
                     sheetData.push([
                         partner.name,
@@ -648,9 +665,7 @@
                         partnerCapitalBs,
                         (share * 100).toFixed(1) + "%",
                         partnerProfit,
-                        partner.withdrawals || 0,
-                        withdrawalBs,
-                        netToCollect
+                        totalReinvest
                     ]);
                 });
             }
@@ -684,19 +699,17 @@
 
             worksheet['!cols'] = [
                 { wch: 25 },
-                { wch: 22 },
                 { wch: 20 },
+                { wch: 22 },
                 { wch: 15 },
-                { wch: 26 },
-                { wch: 18 },
                 { wch: 25 },
-                { wch: 22 }
+                { wch: 25 }
             ];
 
             const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, "Reporte Control Cajas");
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Reporte Liquidacion");
 
-            XLSX.writeFile(workbook, `Reporte_Control_Cajas_${new Date().toISOString().slice(0,10)}.xlsx`);
+            XLSX.writeFile(workbook, `Reporte_Control_Liquidacion_${new Date().toISOString().slice(0,10)}.xlsx`);
         }
 
         document.addEventListener('DOMContentLoaded', () => {
